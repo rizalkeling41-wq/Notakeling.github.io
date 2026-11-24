@@ -1,0 +1,739 @@
+<!-- ... existing code ... -->
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- html2pdf.js untuk Download PDF langsung -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <style>
+    :root {
+      color-scheme: light;
+    }
+<!-- ... existing code ... -->
+    /* Preview Kertas Nota di Layar */
+    .receipt-paper {
+      background: #ffffff;
+      color: #0f172a;
+      width: 100%;
+      margin: 0 auto;
+      transform-origin: top center;
+      transition: max-width 0.2s ease, padding 0.2s ease, font-size 0.2s ease, transform 0.15s ease;
+    }
+
+    .receipt-paper.format-a4 {
+      max-width: 210mm;
+      padding: 28px 32px;
+      font-size: 12.5px;
+    }
+
+    .receipt-paper.format-a5 {
+      max-width: 148mm;
+      padding: 18px 20px;
+      font-size: 11px;
+    }
+
+    .receipt-paper.format-struk80 {
+      max-width: 80mm;
+      padding: 12px 10px;
+      font-size: 10px;
+      line-height: 1.38;
+    }
+
+    /* Mode render PDF bersih tanpa bayangan atau border melengkung */
+    .receipt-paper.pdf-export-mode {
+      box-shadow: none !important;
+      border: none !important;
+      border-radius: 0 !important;
+      transform: none !important;
+      margin: 0 !important;
+    }
+    .receipt-paper.pdf-export-mode.format-a4 {
+      width: 210mm !important;
+      max-width: 210mm !important;
+      padding: 14mm 16mm !important;
+    }
+    .receipt-paper.pdf-export-mode.format-a5 {
+      width: 148mm !important;
+      max-width: 148mm !important;
+      padding: 10mm 11mm !important;
+    }
+    .receipt-paper.pdf-export-mode.format-struk80 {
+      width: 80mm !important;
+      max-width: 80mm !important;
+      padding: 4mm 4mm !important;
+    }
+
+    /* Penyesuaian khusus tampilan struk 80mm di layar maupun cetak */
+<!-- ... existing code ... -->
+      #printable-nota.receipt-paper {
+        display: block !important;
+        border: none !important;
+        border-radius: 0 !important;
+        transform: none !important;
+        margin: 0 auto !important;
+        background: #ffffff !important;
+        color: #000000 !important;
+      }
+
+      #printable-nota.format-a4 {
+        width: 100% !important;
+        max-width: 194mm !important;
+        padding: 4mm !important;
+        font-size: 11.5pt !important;
+      }
+
+      #printable-nota.format-a5 {
+        width: 100% !important;
+        max-width: 134mm !important;
+        padding: 3mm !important;
+        font-size: 10pt !important;
+      }
+
+      #printable-nota.format-struk80 {
+        width: 72mm !important;
+        max-width: 72mm !important;
+        padding: 1mm 0 !important;
+        margin: 0 !important;
+        font-size: 9pt !important;
+        line-height: 1.32 !important;
+      }
+<!-- ... existing code ... -->
+      <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
+        <button type="button" onclick="toggleHistoryModal(true)" class="px-2.5 sm:px-3 py-2 rounded-xl text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 flex items-center gap-1.5 transition">
+          <i data-lucide="folder-clock" class="w-4 h-4 text-indigo-600"></i>
+          <span>Riwayat (<span id="history-count">0</span>)</span>
+        </button>
+        <button type="button" onclick="createNewInvoice()" class="px-2.5 sm:px-3 py-2 rounded-xl text-xs font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 flex items-center gap-1.5 transition">
+          <i data-lucide="file-plus-2" class="w-4 h-4"></i>
+          <span class="hidden xl:inline">Nota Baru</span>
+        </button>
+        <button type="button" onclick="saveCurrentInvoice()" class="px-2.5 sm:px-3 py-2 rounded-xl text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 flex items-center gap-1.5 transition">
+          <i data-lucide="save" class="w-4 h-4"></i>
+          <span class="hidden lg:inline">Simpan Riwayat</span>
+        </button>
+        <button type="button" onclick="triggerPrintReceipt()" class="px-3 py-2 rounded-xl text-xs font-bold text-slate-800 bg-slate-100 hover:bg-slate-200 border border-slate-300 flex items-center gap-1.5 transition">
+          <i data-lucide="printer" class="w-4 h-4"></i>
+          <span class="hidden sm:inline">Cetak Nota</span>
+        </button>
+        <button type="button" onclick="downloadReceiptPDF()" class="btn-download-pdf px-3.5 sm:px-4 py-2 rounded-xl text-xs font-extrabold text-white bg-rose-600 hover:bg-rose-700 flex items-center gap-1.5 shadow-sm transition">
+          <i data-lucide="file-down" class="w-4 h-4"></i>
+          <span>Download PDF</span>
+        </button>
+      </div>
+    </div>
+  </header>
+<!-- ... existing code ... -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">No. Telepon / WhatsApp</label>
+              <input type="text" id="shop-phone" oninput="saveShopProfile()" class="w-full px-3 py-2 text-xs sm:text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">Email / Instagram / Web</label>
+              <input type="text" id="shop-social" oninput="saveShopProfile()" placeholder="IG: @percetakan | email@toko.id" class="w-full px-3 py-2 text-xs sm:text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Info Rekening / Pembayaran</label>
+            <input type="text" id="shop-bank" oninput="saveShopProfile()" class="w-full px-3 py-2 text-xs sm:text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          </div>
+        </div>
+      </div>
+<!-- ... existing code ... -->
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Status Pembayaran</label>
+            <select id="order-status" onchange="renderPreview()" class="w-full px-3 py-2 text-xs sm:text-sm font-bold border border-slate-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              <option value="BELUM LUNAS / DP">BELUM LUNAS / DP</option>
+              <option value="LUNAS">LUNAS</option>
+              <option value="TEMPO">TEMPO</option>
+            </select>
+          </div>
+        </div>
+<!-- ... existing code ... -->
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">Jenis Bahan</label>
+              <select id="bn-material" class="w-full px-3 py-2 text-xs sm:text-sm border border-slate-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <option value="Flexy China 280gr">Flexy China 280gr</option>
+                <option value="Flexy China 340gr">Flexy China 340gr</option>
+                <option value="Flexy Korea 440gr">Flexy Korea 440gr</option>
+                <option value="Albatros">Albatros</option>
+                <option value="Luster">Luster</option>
+                <option value="One Way Vision">One Way Vision</option>
+              </select>
+            </div>
+          </div>
+<!-- ... existing code ... -->
+              <div>
+                <label class="block text-[11px] font-semibold text-slate-600 mb-1">Finishing</label>
+                <select id="bn-finishing" class="w-full px-3 py-2 text-xs sm:text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                  <option value="Mata Ayam / Ring Pojok">Mata Ayam / Ring Pojok</option>
+                  <option value="Mata Ayam per 50cm">Mata Ayam per 50cm</option>
+                  <option value="Lipat Pas / Sisa Bahan">Lipat Pas / Sisa Bahan</option>
+                  <option value="Selongsong Bambu">Selongsong Bambu</option>
+                  <option value="Potong Pas">Potong Pas</option>
+                </select>
+              </div>
+            </div>
+
+            <label class="flex items-center gap-2 text-xs text-slate-700 cursor-pointer select-none">
+              <input type="checkbox" id="bn-min1" onchange="updateBannerCalc()" class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
+              <span>Pembulatan minimum <strong>1,00 m²</strong> per lembar jika luas &lt; 1 m²</span>
+            </label>
+
+            <div class="flex items-center justify-between pt-2 border-t border-indigo-200/70 text-xs">
+<!-- ... existing code ... -->
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">Bahan Kertas</label>
+              <select id="br-material" class="w-full px-3 py-2 text-xs sm:text-sm border border-slate-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <option value="Art Paper 120gr">Art Paper 120gr</option>
+                <option value="Art Paper 150gr">Art Paper 150gr</option>
+                <option value="Art Carton 210gr">Art Carton 210gr</option>
+                <option value="HVS 80gr">HVS 80gr</option>
+                <option value="HVS 100gr">HVS 100gr</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">Sisi Cetak</label>
+              <select id="br-sides" class="w-full px-3 py-2 text-xs sm:text-sm border border-slate-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <option value="1 Sisi">1 Sisi</option>
+                <option value="2 Sisi / Bolak-Balik">2 Sisi / Bolak-Balik</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-3 gap-2.5 bg-slate-50 border border-slate-200 rounded-xl p-3.5">
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-600 mb-1">Satuan</label>
+              <select id="br-unit" onchange="syncBrosurPricePreset()" class="w-full px-2.5 py-2 text-xs sm:text-sm border border-slate-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <option value="Rim (500 lbr)">Rim (500 lbr)</option>
+                <option value="Lembar">Lembar</option>
+                <option value="Box">Box</option>
+              </select>
+            </div>
+<!-- ... existing code ... -->
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">Bahan</label>
+              <select id="xb-material" class="w-full px-3 py-2 text-xs sm:text-sm border border-slate-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <option value="Flexy 280gr">Flexy 280gr</option>
+                <option value="Flexy Korea 440gr">Flexy Korea 440gr</option>
+                <option value="Albatros + Laminasi">Albatros + Laminasi</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">Paket</label>
+              <select id="xb-pkg" onchange="syncStandBannerPrice('xb')" class="w-full px-3 py-2 text-xs sm:text-sm border border-slate-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <option value="Lengkap Rangka/Tiang + Cetak">Lengkap Rangka/Tiang + Cetak</option>
+                <option value="Cetak Banner Saja">Cetak Banner Saja</option>
+              </select>
+            </div>
+          </div>
+<!-- ... existing code ... -->
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">Bahan</label>
+              <select id="yb-material" class="w-full px-3 py-2 text-xs sm:text-sm border border-slate-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <option value="Flexy 280gr">Flexy 280gr</option>
+                <option value="Flexy Korea 440gr">Flexy Korea 440gr</option>
+                <option value="Albatros + Laminasi">Albatros + Laminasi</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">Paket</label>
+              <select id="yb-pkg" onchange="syncStandBannerPrice('yb')" class="w-full px-3 py-2 text-xs sm:text-sm border border-slate-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <option value="Lengkap Rangka/Tiang Y + Cetak">Lengkap Rangka/Tiang Y + Cetak</option>
+                <option value="Cetak Banner Saja">Cetak Banner Saja</option>
+              </select>
+            </div>
+          </div>
+<!-- ... existing code ... -->
+        <!-- PANEL 5: ITEM LAINNYA / JASA -->
+        <div id="cat-panel-lainnya" class="cat-panel space-y-3 hidden">
+          <div class="flex flex-wrap gap-1.5">
+            <button type="button" onclick="applyQuickPreset('Jasa Desain Grafis', 'Setting & desain layout (revisi 2x)', 'Paket', 1, 50000)" class="px-2.5 py-1 text-[11px] font-semibold bg-slate-100 hover:bg-indigo-50 hover:text-indigo-700 rounded-lg transition">+ Jasa Desain Grafis</button>
+            <button type="button" onclick="applyQuickPreset('Stiker Vinyl / Chromo A3+', 'Cetak Stiker Vinyl / Chromo + Kiss Cut A3+', 'Lembar', 5, 15000)" class="px-2.5 py-1 text-[11px] font-semibold bg-slate-100 hover:bg-indigo-50 hover:text-indigo-700 rounded-lg transition">+ Stiker Vinyl / Chromo A3+</button>
+            <button type="button" onclick="applyQuickPreset('Kartu Nama (1 Box)', 'Art Carton 260gr, 2 sisi, isi 100 lbr', 'Box', 1, 45000)" class="px-2.5 py-1 text-[11px] font-semibold bg-slate-100 hover:bg-indigo-50 hover:text-indigo-700 rounded-lg transition">+ Kartu Nama (Box)</button>
+            <button type="button" onclick="applyQuickPreset('ID Card / Lanyard', 'Cetak ID Card PVC + Tali Lanyard Printing', 'Set', 5, 25000)" class="px-2.5 py-1 text-[11px] font-semibold bg-slate-100 hover:bg-indigo-50 hover:text-indigo-700 rounded-lg transition">+ ID Card / Lanyard</button>
+            <button type="button" onclick="applyQuickPreset('Biaya Ongkir / Kurir', 'Pengantaran pesanan ke lokasi', 'Trip', 1, 20000)" class="px-2.5 py-1 text-[11px] font-semibold bg-slate-100 hover:bg-indigo-50 hover:text-indigo-700 rounded-lg transition">+ Biaya Ongkir</button>
+          </div>
+<!-- ... existing code ... -->
+      <!-- Toolbar Kontrol Format Kertas, Zoom & Cetak/PDF -->
+      <div class="preview-toolbar no-print w-full max-w-[210mm] mb-3.5 bg-white border border-slate-200 rounded-2xl p-3 flex flex-wrap items-center justify-between gap-2.5">
+        <div class="flex items-center gap-2 flex-wrap">
+          <span class="text-xs font-bold text-slate-600 flex items-center gap-1.5">
+            <i data-lucide="file-spreadsheet" class="w-4 h-4 text-indigo-600"></i> Kertas:
+          </span>
+          <div class="inline-flex bg-slate-100 p-1 rounded-xl">
+            <button type="button" onclick="setPaperFormat('a4')" id="fmt-btn-a4" class="fmt-btn px-2.5 py-1 rounded-lg text-xs font-extrabold bg-white text-indigo-600 shadow-xs transition">A4</button>
+            <button type="button" onclick="setPaperFormat('a5')" id="fmt-btn-a5" class="fmt-btn px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 transition">A5</button>
+            <button type="button" onclick="setPaperFormat('struk80')" id="fmt-btn-struk80" class="fmt-btn px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 transition">Struk 80mm</button>
+          </div>
+
+          <div class="inline-flex items-center bg-slate-100 p-1 rounded-xl" title="Zoom Pratinjau">
+            <button type="button" onclick="adjustPreviewZoom(-0.1)" class="p-1 rounded-lg text-slate-600 hover:bg-white hover:text-slate-900 transition">
+              <i data-lucide="zoom-out" class="w-3.5 h-3.5"></i>
+            </button>
+            <span id="zoom-label" class="px-2 text-[11px] font-bold text-slate-700 min-w-[44px] text-center">100%</span>
+            <button type="button" onclick="adjustPreviewZoom(0.1)" class="p-1 rounded-lg text-slate-600 hover:bg-white hover:text-slate-900 transition">
+              <i data-lucide="zoom-in" class="w-3.5 h-3.5"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2 flex-wrap">
+          <button type="button" onclick="loadSampleInvoice()" class="px-2.5 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition">Contoh</button>
+          <button type="button" onclick="triggerPrintReceipt()" class="px-3 py-1.5 rounded-xl text-xs font-extrabold text-white bg-slate-900 hover:bg-slate-800 flex items-center gap-1.5 transition">
+            <i data-lucide="printer" class="w-3.5 h-3.5"></i>
+            <span>Cetak Nota</span>
+          </button>
+          <button type="button" onclick="downloadReceiptPDF()" class="btn-download-pdf px-3.5 py-1.5 rounded-xl text-xs font-extrabold text-white bg-rose-600 hover:bg-rose-700 flex items-center gap-1.5 shadow-xs transition">
+            <i data-lucide="file-down" class="w-3.5 h-3.5"></i>
+            <span>Download PDF</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- KERTAS NOTA YANG DICETAK / DIUNDUH PDF -->
+      <div id="preview-zoom-wrapper" class="w-full flex justify-center overflow-x-auto pb-4">
+        <article id="printable-nota" class="receipt-paper format-a4 rounded-2xl border border-slate-200 shadow-md">
+
+          <!-- Kop Usaha & Nomor Nota -->
+          <div class="receipt-header-flex flex justify-between items-start gap-4 pb-3.5 border-b-2 border-slate-900 avoid-break">
+            <div class="min-w-0">
+              <h2 id="p-shop-name" class="text-base sm:text-lg font-extrabold uppercase tracking-tight text-slate-900"></h2>
+              <p id="p-shop-tagline" class="text-[11px] font-semibold text-indigo-700 mt-0.5"></p>
+              <p id="p-shop-address" class="text-[11px] text-slate-600 mt-1"></p>
+              <p class="text-[11px] text-slate-700 mt-0.5">Telp/WA: <span id="p-shop-phone" class="font-bold"></span> <span id="p-shop-social-wrap" class="text-slate-500">• <span id="p-shop-social"></span></span></p>
+            </div>
+<!-- ... existing code ... -->
+          <!-- Tanda Tangan -->
+          <div class="receipt-sign-grid grid grid-cols-2 gap-8 text-center mt-6 pt-2 avoid-break">
+            <div>
+              <p class="text-[11px] text-slate-600">Pelanggan,</p>
+              <div class="sign-space"></div>
+              <p id="p-sign-cust" class="text-[11px] font-bold text-slate-900 border-t border-slate-500 inline-block px-6 pt-1">( Pelanggan )</p>
+            </div>
+            <div>
+              <p class="text-[11px] text-slate-600">Hormat Kami,</p>
+              <div class="sign-space"></div>
+              <p id="p-sign-shop" class="text-[11px] font-bold text-slate-900 border-t border-slate-500 inline-block px-6 pt-1">( Kasir / Admin )</p>
+            </div>
+          </div>
+
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // =========================================================================
+    // KONFIGURASI & STATE APLIKASI
+    // =========================================================================
+    const STORAGE_KEYS = {
+      SHOP: 'notaprint_v3_shop',
+      HISTORY: 'notaprint_v3_history'
+    };
+
+    const DEFAULT_SHOP = {
+      name: 'GRAFIKA MANDIRI DIGITAL PRINTING',
+      tagline: 'Cetak Spanduk, Banner, Brosur, X-Banner, Y-Banner & Stiker',
+      address: 'Jl. Diponegoro No. 88, Bandung',
+      phone: '0812-3456-7890',
+      social: 'IG: @grafikamandiri.print | order@grafikamandiri.id',
+      bank: 'BCA 7720119988 a.n. Grafika Mandiri | BRI 009101002233505'
+    };
+
+    const DEFAULT_TERMS = '1. Mohon cek kembali draft/desain sebelum proses cetak. Kesalahan setelah ACC di luar tanggung jawab kami.\n2. Pengambilan pesanan harap menyertakan nota ini.';
+
+    let bannerUnit = 'm';
+    let currentFormat = 'a4';
+    let previewZoom = 1;
+    let items = [];
+    let confirmAction = null;
+    let isExportingPdf = false;
+<!-- ... existing code ... -->
+    // =========================================================================
+    // DOWNLOAD PDF LANGSUNG (html2pdf.js + FALLBACK PRINT-TO-PDF)
+    // =========================================================================
+    function setPdfButtonsLoading(loading) {
+      document.querySelectorAll('.btn-download-pdf').forEach(btn => {
+        btn.disabled = loading;
+        if (loading) {
+          btn.classList.add('opacity-75', 'cursor-wait');
+          btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i><span>Membuat PDF...</span>`;
+        } else {
+          btn.classList.remove('opacity-75', 'cursor-wait');
+          btn.innerHTML = `<i data-lucide="file-down" class="w-4 h-4"></i><span>Download PDF</span>`;
+        }
+        lucide.createIcons({ nodes: [btn] });
+      });
+    }
+
+    function sanitizeFilenamePart(str) {
+      return (str || 'Umum')
+        .replace(/[^a-zA-Z0-9\s-_]/g, '')
+        .trim()
+        .replace(/\s+/g, '-')
+        .slice(0, 40) || 'Umum';
+    }
+
+    async function downloadReceiptPDF() {
+      if (isExportingPdf) return;
+      renderPreview();
+
+      // Fallback otomatis jika library html2pdf tidak termuat (misal offline / sandbox memblokir CDN)
+      if (typeof window.html2pdf === 'undefined') {
+        showToast('Library PDF tidak tersedia. Gunakan Print lalu pilih "Save as PDF / Simpan sebagai PDF".', 'info');
+        setTimeout(() => triggerPrintReceipt(), 400);
+        return;
+      }
+
+      isExportingPdf = true;
+      setPdfButtonsLoading(true);
+
+      const notaEl = document.getElementById('printable-nota');
+      const prevZoom = previewZoom;
+
+      try {
+        // Normalisasi skala zoom & gaya kertas sementara agar hasil PDF tajam dan tidak terpotong
+        notaEl.style.transform = 'none';
+        notaEl.classList.add('pdf-export-mode');
+
+        const invNo = sanitizeFilenamePart(document.getElementById('inv-number').value || 'NP');
+        const cust = sanitizeFilenamePart(document.getElementById('cust-name').value || 'Pelanggan');
+        const filename = `Nota-${invNo}-${cust}.pdf`;
+
+        let jsPdfConfig = { unit: 'mm', format: 'a4', orientation: 'portrait' };
+        let html2canvasWidth = 794; // 210mm pada 96dpi
+
+        if (currentFormat === 'a5') {
+          jsPdfConfig = { unit: 'mm', format: 'a5', orientation: 'portrait' };
+          html2canvasWidth = 559; // 148mm pada 96dpi
+        } else if (currentFormat === 'struk80') {
+          // Hitung tinggi konten dinamis untuk struk thermal 80mm
+          const measuredPxHeight = Math.max(420, notaEl.scrollHeight + 24);
+          const heightMm = Math.ceil((measuredPxHeight * 80) / 302);
+          jsPdfConfig = { unit: 'mm', format: [80, heightMm], orientation: 'portrait' };
+          html2canvasWidth = 302; // 80mm pada 96dpi
+        }
+
+        const opt = {
+          margin: 0,
+          filename,
+          image: { type: 'jpeg', quality: 0.98 },
+          html2canvas: {
+            scale: 2.5,
+            useCORS: true,
+            backgroundColor: '#ffffff',
+            scrollX: 0,
+            scrollY: 0,
+            windowWidth: html2canvasWidth
+          },
+          jsPDF: jsPdfConfig,
+          pagebreak: { mode: ['css', 'legacy'], avoid: ['tr', '.avoid-break'] }
+        };
+
+        await window.html2pdf().set(opt).from(notaEl).save();
+        showToast(`PDF berhasil diunduh: ${filename}`);
+      } catch (err) {
+        console.error('Gagal membuat PDF:', err);
+        showToast('Gagal generate PDF otomatis. Membuka dialog Print (pilih Simpan sebagai PDF)...', 'error');
+        setTimeout(() => triggerPrintReceipt(), 450);
+      } finally {
+        notaEl.classList.remove('pdf-export-mode');
+        applyPreviewZoom(prevZoom);
+        isExportingPdf = false;
+        setPdfButtonsLoading(false);
+      }
+    }
+
+    // =========================================================================
+    // FITUR CETAK (PRINT) — ANDAL DI BROWSER & IFRAME
+    // =========================================================================
+    function forceNativePrint() {
+      try {
+        window.focus();
+        window.print();
+      } catch (err) {
+        console.error('Native print gagal:', err);
+        openStandalonePrintWindow();
+      }
+    }
+<!-- ... existing code ... -->
+    function openStandalonePrintWindow() {
+      renderPreview();
+      const receiptEl = document.getElementById('printable-nota').cloneNode(true);
+      receiptEl.style.transform = 'none';
+      const pageSizeCss = {
+        a4: '@page { size: A4 portrait; margin: 10mm; } body { width: 190mm; font-size: 11.5pt; }',
+        a5: '@page { size: A5 portrait; margin: 8mm; } body { width: 132mm; font-size: 10pt; }',
+        struk80: '@page { size: 80mm auto; margin: 3mm; } body { width: 74mm; font-size: 9pt; line-height: 1.32; }'
+      }[currentFormat] || '@page { margin: 8mm; }';
+<!-- ... existing code ... -->
+    function setPaperFormat(fmt) {
+      currentFormat = fmt;
+      const paper = document.getElementById('printable-nota');
+      paper.classList.remove('format-a4', 'format-a5', 'format-struk80');
+      paper.classList.add(`format-${fmt}`);
+
+      document.querySelectorAll('.fmt-btn').forEach(btn => {
+        btn.className = 'fmt-btn px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 transition';
+      });
+      const active = document.getElementById(`fmt-btn-${fmt}`);
+      if (active) {
+        active.className = 'fmt-btn px-2.5 py-1 rounded-lg text-xs font-extrabold bg-white text-indigo-600 shadow-xs transition';
+      }
+    }
+
+    function applyPreviewZoom(z) {
+      previewZoom = Math.min(1.2, Math.max(0.6, Math.round(z * 10) / 10));
+      const paper = document.getElementById('printable-nota');
+      paper.style.transform = previewZoom === 1 ? 'none' : `scale(${previewZoom})`;
+      document.getElementById('zoom-label').textContent = `${Math.round(previewZoom * 100)}%`;
+    }
+
+    function adjustPreviewZoom(delta) {
+      applyPreviewZoom(previewZoom + delta);
+    }
+
+    // =========================================================================
+    // PROFIL TOKO & TAB KATEGORI PRODUK
+    // =========================================================================
+    function toggleShopPanel() {
+      document.getElementById('shop-panel').classList.toggle('hidden');
+      document.getElementById('shop-chevron').classList.toggle('rotate-180');
+    }
+
+    function loadShopProfile() {
+      let data = DEFAULT_SHOP;
+      try {
+        const saved = localStorage.getItem(STORAGE_KEYS.SHOP);
+        if (saved) data = { ...DEFAULT_SHOP, ...JSON.parse(saved) };
+      } catch (e) {
+        console.error('Gagal memuat profil percetakan:', e);
+      }
+      document.getElementById('shop-name').value = data.name;
+      document.getElementById('shop-tagline').value = data.tagline;
+      document.getElementById('shop-address').value = data.address;
+      document.getElementById('shop-phone').value = data.phone;
+      document.getElementById('shop-social').value = data.social || '';
+      document.getElementById('shop-bank').value = data.bank;
+    }
+
+    function saveShopProfile() {
+      const data = {
+        name: document.getElementById('shop-name').value,
+        tagline: document.getElementById('shop-tagline').value,
+        address: document.getElementById('shop-address').value,
+        phone: document.getElementById('shop-phone').value,
+        social: document.getElementById('shop-social').value,
+        bank: document.getElementById('shop-bank').value
+      };
+      try {
+        localStorage.setItem(STORAGE_KEYS.SHOP, JSON.stringify(data));
+      } catch (e) {
+        console.error('Gagal menyimpan profil percetakan:', e);
+      }
+      renderPreview();
+    }
+<!-- ... existing code ... -->
+    function computeBannerMetrics() {
+      const pRaw = parseFloat(document.getElementById('bn-p').value) || 0;
+      const lRaw = parseFloat(document.getElementById('bn-l').value) || 0;
+      const qty = Math.max(1, parseInt(document.getElementById('bn-qty').value, 10) || 1);
+      const rate = Math.max(0, parseFloat(document.getElementById('bn-rate').value) || 0);
+      const min1 = document.getElementById('bn-min1').checked;
+
+      const pMeter = bannerUnit === 'cm' ? pRaw / 100 : pRaw;
+      const lMeter = bannerUnit === 'cm' ? lRaw / 100 : lRaw;
+      const rawArea = Math.max(0, pMeter * lMeter);
+      let area = rawArea > 0 ? Math.round(rawArea * 100) / 100 : 0;
+      if (area > 0 && min1 && area < 1) {
+        area = 1;
+      }
+      const unitPrice = Math.round(area * rate);
+      const subtotal = unitPrice * qty;
+
+      return { pRaw, lRaw, area, qty, rate, unitPrice, subtotal };
+    }
+<!-- ... existing code ... -->
+    function removeItem(id) {
+      items = items.filter(it => it.id !== id);
+      refreshUI();
+    }
+
+    function updateItemQty(id, delta) {
+      const item = items.find(it => it.id === id);
+      if (!item) return;
+      const nextQty = Math.max(1, (parseInt(item.qty, 10) || 1) + delta);
+      item.qty = nextQty;
+      item.subtotal = nextQty * (Number(item.unitPrice) || 0);
+      refreshUI();
+    }
+
+    function clearItemsConfirm() {
+      if (!items.length) return;
+      askConfirm('Kosongkan Item Nota', 'Hapus semua item pesanan yang ada di nota ini?', () => {
+        items = [];
+        refreshUI();
+        showToast('Semua item telah dihapus', 'info');
+      });
+    }
+<!-- ... existing code ... -->
+      list.innerHTML = items.map((it, idx) => `
+        <div class="flex items-start justify-between gap-2.5 p-3 rounded-xl bg-slate-50 border border-slate-200/80">
+          <div class="min-w-0 flex-1">
+            <div class="flex items-center gap-1.5">
+              <span class="px-1.5 py-0.5 text-[10px] font-bold bg-indigo-100 text-indigo-700 rounded">${it.category}</span>
+              <p class="text-xs font-bold text-slate-900 truncate">${idx + 1}. ${it.name}</p>
+            </div>
+            <p class="text-[11px] text-slate-500 mt-0.5 truncate">${it.spec}</p>
+            <div class="flex items-center justify-between gap-2 mt-1.5 flex-wrap">
+              <p class="text-xs font-semibold text-slate-700">${it.qty} ${it.unit} × ${formatRp(it.unitPrice)} = <span class="text-indigo-700 font-extrabold">${formatRp(it.subtotal)}</span></p>
+              <div class="inline-flex items-center bg-white border border-slate-200 rounded-lg overflow-hidden">
+                <button type="button" onclick="updateItemQty(${it.id}, -1)" title="Kurangi Qty" class="px-2 py-0.5 text-xs font-bold text-slate-600 hover:bg-slate-100 transition">-</button>
+                <span class="px-2 py-0.5 text-[11px] font-extrabold text-slate-900 border-x border-slate-200">${it.qty}</span>
+                <button type="button" onclick="updateItemQty(${it.id}, 1)" title="Tambah Qty" class="px-2 py-0.5 text-xs font-bold text-slate-600 hover:bg-slate-100 transition">+</button>
+              </div>
+            </div>
+          </div>
+          <button type="button" onclick="removeItem(${it.id})" title="Hapus item" class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition shrink-0">
+            <i data-lucide="trash-2" class="w-4 h-4"></i>
+          </button>
+        </div>
+      `).join('');
+
+      lucide.createIcons({ nodes: [list] });
+    }
+
+    function renderPreview() {
+      // Kop usaha
+      document.getElementById('p-shop-name').textContent = document.getElementById('shop-name').value || 'PERCETAKAN';
+      document.getElementById('p-shop-tagline').textContent = document.getElementById('shop-tagline').value;
+      document.getElementById('p-shop-address').textContent = document.getElementById('shop-address').value;
+      document.getElementById('p-shop-phone').textContent = document.getElementById('shop-phone').value;
+
+      const social = document.getElementById('shop-social').value.trim();
+      const socialWrap = document.getElementById('p-shop-social-wrap');
+      if (social) {
+        socialWrap.classList.remove('hidden');
+        document.getElementById('p-shop-social').textContent = social;
+      } else {
+        socialWrap.classList.add('hidden');
+      }
+
+      const bank = document.getElementById('shop-bank').value.trim();
+<!-- ... existing code ... -->
+      // Status pesanan
+      const statusVal = document.getElementById('order-status').value;
+      const statusBadge = document.getElementById('p-order-status');
+      statusBadge.textContent = statusVal;
+      if (statusVal === 'LUNAS') {
+        statusBadge.className = 'inline-block px-2 py-0.5 text-[10px] font-extrabold uppercase rounded border bg-emerald-50 text-emerald-800 border-emerald-300';
+      } else if (statusVal.includes('DP') || statusVal.includes('BELUM LUNAS')) {
+        statusBadge.className = 'inline-block px-2 py-0.5 text-[10px] font-extrabold uppercase rounded border bg-amber-50 text-amber-800 border-amber-300';
+      } else {
+        statusBadge.className = 'inline-block px-2 py-0.5 text-[10px] font-extrabold uppercase rounded border bg-slate-100 text-slate-700 border-slate-300';
+      }
+<!-- ... existing code ... -->
+    function loadFromHistory(invNumber) {
+      const rec = readHistory().find(x => x.invNumber === invNumber);
+      if (!rec) return;
+
+      document.getElementById('inv-number').value = rec.invNumber;
+      document.getElementById('order-status').value = rec.orderStatus || 'BELUM LUNAS / DP';
+      document.getElementById('inv-date').value = rec.invDate || '';
+      document.getElementById('inv-due').value = rec.invDue || '';
+      document.getElementById('cust-name').value = rec.custName || '';
+      document.getElementById('cust-phone').value = rec.custPhone || '';
+      document.getElementById('cust-note').value = rec.custNote || '';
+      document.getElementById('disc-type').value = rec.discType || 'rp';
+      document.getElementById('disc-value').value = rec.discValue || 0;
+      document.getElementById('paid-amount').value = rec.paidAmount || 0;
+      document.getElementById('pay-method').value = rec.payMethod || 'Tunai (Cash)';
+      document.getElementById('inv-terms').value = rec.terms || DEFAULT_TERMS;
+      items = Array.isArray(rec.items) ? rec.items : [];
+
+      toggleHistoryModal(false);
+      refreshUI();
+      showToast(`Nota ${invNumber} dimuat`);
+    }
+<!-- ... existing code ... -->
+    function createNewInvoice() {
+      askConfirm('Buat Nota Baru', 'Mulai nota kosong untuk transaksi baru?', () => {
+        generateInvoiceNumber();
+        document.getElementById('inv-date').valueAsDate = new Date();
+        document.getElementById('order-status').value = 'BELUM LUNAS / DP';
+        document.getElementById('inv-due').value = '';
+        document.getElementById('cust-name').value = '';
+        document.getElementById('cust-phone').value = '';
+        document.getElementById('cust-note').value = '';
+        document.getElementById('disc-type').value = 'rp';
+        document.getElementById('disc-value').value = 0;
+        document.getElementById('paid-amount').value = 0;
+        items = [];
+        refreshUI();
+        showToast('Nota baru siap diisi', 'info');
+      });
+    }
+
+    function loadSampleInvoice() {
+      generateInvoiceNumber();
+      document.getElementById('inv-date').valueAsDate = new Date();
+      document.getElementById('order-status').value = 'BELUM LUNAS / DP';
+      document.getElementById('inv-due').value = 'Besok, 15.00 WIB';
+      document.getElementById('cust-name').value = 'Bpk. Hendra Wijaya (Kopi Nusantara)';
+      document.getElementById('cust-phone').value = '0819-4455-6677';
+      document.getElementById('cust-note').value = 'Warna merah & hitam pekat, packing plastik bening';
+      document.getElementById('disc-type').value = 'rp';
+      document.getElementById('disc-value').value = 15000;
+      document.getElementById('paid-amount').value = 250000;
+      document.getElementById('pay-method').value = 'Transfer Bank';
+
+      items = [
+        {
+          id: 1,
+          category: 'Banner',
+          name: 'Spanduk Grand Opening Kedai',
+          spec: '3x1 m (3.00 m²) • Flexy China 340gr • Fin: Mata Ayam / Ring Pojok (@Rp 30.000/m²)',
+          qty: 2,
+          unit: 'Pcs',
+          unitPrice: 90000,
+          subtotal: 180000
+        },
+        {
+          id: 2,
+          category: 'Brosur',
+          name: 'Brosur Menu & Promo Spesial',
+          spec: 'Uk. A5 • Art Paper 150gr • 2 Sisi / Bolak-Balik',
+          qty: 1,
+          unit: 'Rim',
+          unitPrice: 325000,
+          subtotal: 325000
+        },
+        {
+          id: 3,
+          category: 'X-Banner',
+          name: 'X-Banner Promo Diskon',
+          spec: 'X-Banner Uk. 60 x 160 cm • Flexy Korea 440gr • Lengkap Rangka/Tiang + Cetak',
+          qty: 1,
+          unit: 'Set',
+          unitPrice: 85000,
+          subtotal: 85000
+        },
+        {
+          id: 4,
+          category: 'Y-Banner',
+          name: 'Y-Banner Display Kasir',
+          spec: 'Y-Banner Uk. 60 x 160 cm • Albatros + Laminasi • Lengkap Rangka/Tiang Y + Cetak',
+          qty: 1,
+          unit: 'Set',
+          unitPrice: 115000,
+          subtotal: 115000
+        }
+      ];
+
+      refreshUI();
+      showToast('Data contoh nota dimuat — siap dicetak atau diunduh PDF', 'info');
+    }
+<!-- ... existing code ... -->
